@@ -1,0 +1,16 @@
+C:\Users\Avenzey\Documents\clip2load\bin\Debug\net8.0-windows\clip2load.exe
+C:\Users\Avenzey\Documents\clip2load\bin\Debug\net8.0-windows\clip2load.deps.json
+C:\Users\Avenzey\Documents\clip2load\bin\Debug\net8.0-windows\clip2load.runtimeconfig.json
+C:\Users\Avenzey\Documents\clip2load\bin\Debug\net8.0-windows\clip2load.dll
+C:\Users\Avenzey\Documents\clip2load\bin\Debug\net8.0-windows\clip2load.pdb
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.clip2load.resources
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.csproj.GenerateResource.cache
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.AssemblyInfoInputs.cache
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.AssemblyInfo.cs
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.csproj.CoreCompileInputs.cache
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.dll
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\refint\clip2load.dll
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.pdb
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\clip2load.genruntimeconfig.cache
+C:\Users\Avenzey\Documents\clip2load\obj\Debug\net8.0-windows\ref\clip2load.dll

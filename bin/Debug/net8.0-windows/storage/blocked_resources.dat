@@ -1,0 +1,10 @@
+﻿{
+  "savedDate": "2025-09-03T18:10:42.8805177+02:00",
+  "version": "1.0",
+  "blockedResources": [
+    "cfx_prompt_ammunation_rework",
+    "cfx_prompt_barber",
+    "cfx_prompt_bus_station",
+    "orp_mappingpack5"
+  ]
+}
