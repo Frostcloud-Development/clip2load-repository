@@ -1,10 +1,6 @@
 # clip2load
 
-A Windows Forms application for processing GTA V clip files by removing or replacing resource references. Ideal for content creators who need to clean up clip files before uploading or sharing.
-
-## Overview
-
-clip2load allows you to process GTA V `.clip` files by identifying and patching specific resource names within the binary clip data. This is useful for removing references to mods, resources, or other identifiable content that you may not want included in your clips.
+clip2load allows you to process GTA V `.clip` files by identifying and patching specific resource names within the binary clip data. This is useful for removing references to mods, resources, or other identifiable content that you may not want included in your clips. Useful for preventing R* Editor crashes while attempting to load escrowed assets that are stored in the .clip files.
 
 ## Features
 
@@ -13,8 +9,6 @@ clip2load allows you to process GTA V `.clip` files by identifying and patching 
 - 🎯 **Pattern Matching** - Support for wildcards (`*` and `?`) to match multiple resource variations
 - 💾 **Auto-Save Resources** - Blocked resource lists are automatically saved and loaded
 - 🔄 **Automatic Backups** - All original files are backed up before processing with timestamped folders
-- 📊 **Real-time Logging** - Track all operations with detailed timestamped logs
-- 🛡️ **Error Tracking** - Integrated Sentry SDK for monitoring and error reporting
 
 ## System Requirements
 
