@@ -54,9 +54,13 @@ namespace clip2load
         /// </summary>
         public async Task<bool> SaveBlockedResourcesAsync(List<string> blockedResources)
         {
+            var span = SentrySdk.GetSpan()?.StartChild("save-blocked-resources") ?? 
+                       SentrySdk.StartTransaction("save-blocked-resources", "data.save");
+            
             try
             {
                 OnProgress?.Invoke($"Saving {blockedResources.Count} blocked resources to storage...");
+                SentrySdk.AddBreadcrumb($"Saving {blockedResources.Count} resources", "data", level: Sentry.BreadcrumbLevel.Info);
 
                 // Create storage data structure
                 var storageData = new ResourceStorageData
@@ -77,11 +81,24 @@ namespace clip2load
                 await File.WriteAllTextAsync(resourcesFilePath, jsonString, Encoding.UTF8);
 
                 OnProgress?.Invoke($"Blocked resources saved to: {resourcesFilePath}");
+                
+                span.SetExtra("resource_count", blockedResources.Count);
+                span.SetExtra("file_path", resourcesFilePath);
+                span.Finish(SpanStatus.Ok);
+                
                 return true;
             }
             catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex, scope =>
+                {
+                    scope.SetTag("operation", "save-resources");
+                    scope.SetExtra("resource_count", blockedResources.Count);
+                    scope.SetExtra("file_path", resourcesFilePath);
+                });
+                
                 OnError?.Invoke($"Failed to save blocked resources: {ex.Message}");
+                span.Finish(SpanStatus.InternalError);
                 return false;
             }
         }
@@ -91,11 +108,16 @@ namespace clip2load
         /// </summary>
         public async Task<List<string>> LoadBlockedResourcesAsync()
         {
+            var span = SentrySdk.GetSpan()?.StartChild("load-blocked-resources") ?? 
+                       SentrySdk.StartTransaction("load-blocked-resources", "data.load");
+            
             try
             {
                 if (!File.Exists(resourcesFilePath))
                 {
                     OnProgress?.Invoke("No saved blocked resources found - starting with empty list");
+                    SentrySdk.AddBreadcrumb("No saved resources file found", "data", level: Sentry.BreadcrumbLevel.Info);
+                    span.Finish(SpanStatus.NotFound);
                     return new List<string>();
                 }
 
@@ -113,17 +135,32 @@ namespace clip2load
                 if (storageData?.BlockedResources != null)
                 {
                     OnProgress?.Invoke($"Loaded {storageData.BlockedResources.Count} blocked resources from {storageData.SavedDate:yyyy-MM-dd HH:mm:ss}");
+                    SentrySdk.AddBreadcrumb($"Loaded {storageData.BlockedResources.Count} resources", "data", level: Sentry.BreadcrumbLevel.Info);
+                    
+                    span.SetExtra("resource_count", storageData.BlockedResources.Count);
+                    span.SetExtra("saved_date", storageData.SavedDate);
+                    span.Finish(SpanStatus.Ok);
+                    
                     return storageData.BlockedResources;
                 }
                 else
                 {
                     OnProgress?.Invoke("Storage file exists but contains no valid data");
+                    SentrySdk.AddBreadcrumb("Invalid storage data", "data", level: Sentry.BreadcrumbLevel.Warning);
+                    span.Finish(SpanStatus.DataLoss);
                     return new List<string>();
                 }
             }
             catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex, scope =>
+                {
+                    scope.SetTag("operation", "load-resources");
+                    scope.SetExtra("file_path", resourcesFilePath);
+                });
+                
                 OnError?.Invoke($"Failed to load blocked resources: {ex.Message}");
+                span.Finish(SpanStatus.InternalError);
                 return new List<string>();
             }
         }
@@ -214,25 +251,37 @@ namespace clip2load
         public async Task<ProcessingResult> ProcessClipsAsync(List<string> clipFilePaths, List<string> blockedResources,
             PatchMode mode = PatchMode.Null, string placeholder = "REMOVED", bool caseInsensitive = false)
         {
+            var transaction = SentrySdk.GetSpan() ?? SentrySdk.StartTransaction("process-clips", "process");
             var result = new ProcessingResult();
 
             try
             {
+                SentrySdk.AddBreadcrumb("Starting clip processing", "process", level: Sentry.BreadcrumbLevel.Info);
                 OnProgress?.Invoke("Starting clip processing...");
+                
+                transaction.SetExtra("total_clips", clipFilePaths.Count);
+                transaction.SetExtra("blocked_resources", blockedResources.Count);
+                transaction.SetExtra("patch_mode", mode.ToString());
+                transaction.SetExtra("case_insensitive", caseInsensitive);
 
                 if (!clipFilePaths.Any())
                 {
+                    SentrySdk.AddBreadcrumb("No clip files selected", "process", level: Sentry.BreadcrumbLevel.Warning);
                     OnError?.Invoke("No clip files selected for processing");
+                    transaction.Finish(SpanStatus.InvalidArgument);
                     return result;
                 }
 
                 if (!blockedResources.Any())
                 {
+                    SentrySdk.AddBreadcrumb("No blocked resources specified", "process", level: Sentry.BreadcrumbLevel.Warning);
                     OnError?.Invoke("No blocked resources specified");
+                    transaction.Finish(SpanStatus.InvalidArgument);
                     return result;
                 }
 
                 // Create backup directory structure
+                var backupSpan = transaction.StartChild("create-backup-directory");
                 if (!Directory.Exists(backupDirectory))
                 {
                     Directory.CreateDirectory(backupDirectory);
@@ -242,6 +291,7 @@ namespace clip2load
                 {
                     OnProgress?.Invoke($"Using existing backup directory: {backupDirectory}");
                 }
+                backupSpan.Finish();
 
                 // Log backup structure info
                 var backupsRoot = Path.GetDirectoryName(backupDirectory);
@@ -254,6 +304,7 @@ namespace clip2load
                 result.TotalPatches = 0;
 
                 // Process each clip file
+                var processFilesSpan = transaction.StartChild("process-all-files");
                 foreach (var clipPath in clipFilePaths)
                 {
                     OnProgress?.Invoke($"Processing: {Path.GetFileName(clipPath)}");
@@ -275,20 +326,36 @@ namespace clip2load
 
                     result.FileResults.Add(fileResult);
                 }
+                processFilesSpan.Finish();
 
                 result.Success = true;
                 result.BackupDirectory = backupDirectory;
+                
+                transaction.SetExtra("files_processed", result.ProcessedFiles);
+                transaction.SetExtra("files_patched", result.PatchedFiles);
+                transaction.SetExtra("total_patches", result.TotalPatches);
 
+                SentrySdk.AddBreadcrumb($"Processing complete: {result.TotalPatches} patches applied", "process", level: Sentry.BreadcrumbLevel.Info);
                 OnComplete?.Invoke($"Processing complete! Processed {result.ProcessedFiles} files, " +
                     $"patched {result.PatchedFiles} files with {result.TotalPatches} total patches.");
 
+                transaction.Finish(SpanStatus.Ok);
                 return result;
             }
             catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex, scope =>
+                {
+                    scope.SetTag("operation", "process-clips");
+                    scope.SetExtra("total_clips", clipFilePaths.Count);
+                    scope.SetExtra("blocked_resources_count", blockedResources.Count);
+                    scope.SetExtra("processed_files", result.ProcessedFiles);
+                });
+                
                 OnError?.Invoke($"Processing failed: {ex.Message}");
                 result.Success = false;
                 result.ErrorMessage = ex.Message;
+                transaction.Finish(SpanStatus.InternalError);
                 return result;
             }
         }
@@ -299,6 +366,11 @@ namespace clip2load
         private async Task<FileProcessingResult> ProcessSingleClipAsync(string clipPath, List<string> blockedResources,
             PatchMode mode, string placeholder, bool caseInsensitive)
         {
+            var span = SentrySdk.GetSpan()?.StartChild("process-single-clip") ?? 
+                       SentrySdk.StartTransaction("process-single-clip", "file.process");
+            
+            span.SetExtra("file_name", Path.GetFileName(clipPath));
+            
             var result = new FileProcessingResult
             {
                 FilePath = clipPath,
@@ -310,10 +382,13 @@ namespace clip2load
                 if (!File.Exists(clipPath))
                 {
                     result.ErrorMessage = "File not found";
+                    SentrySdk.AddBreadcrumb($"File not found: {clipPath}", "file", level: Sentry.BreadcrumbLevel.Warning);
+                    span.Finish(SpanStatus.NotFound);
                     return result;
                 }
 
                 // Create backup with original filename in the timestamped backup folder
+                var backupSpan = span.StartChild("create-backup");
                 var backupPath = Path.Combine(backupDirectory, Path.GetFileName(clipPath));
 
                 // Ensure backup directory exists (in case this is the first file)
@@ -322,15 +397,22 @@ namespace clip2load
                 // Copy original file to backup location
                 File.Copy(clipPath, backupPath, true);
                 result.BackupPath = backupPath;
+                backupSpan.Finish();
 
                 OnProgress?.Invoke($"Backed up: {Path.GetFileName(clipPath)} → {Path.GetFileName(backupDirectory)}");
 
                 // Read file data
+                var readSpan = span.StartChild("read-file");
                 var fileData = await File.ReadAllBytesAsync(clipPath);
+                var fileSize = fileData.Length;
+                readSpan.SetExtra("file_size_bytes", fileSize);
+                readSpan.Finish();
+                
                 var originalData = (byte[])fileData.Clone();
                 bool hasChanges = false;
 
                 // Process each blocked resource pattern
+                var patchSpan = span.StartChild("find-and-patch");
                 foreach (var resource in blockedResources)
                 {
                     var matches = FindPatternMatches(fileData, resource, caseInsensitive);
@@ -350,24 +432,42 @@ namespace clip2load
                         });
                     }
                 }
+                patchSpan.SetExtra("patches_applied", result.PatchCount);
+                patchSpan.Finish();
 
                 // Write changes if any patches were applied
                 if (hasChanges)
                 {
+                    var writeSpan = span.StartChild("write-patched-file");
                     await File.WriteAllBytesAsync(clipPath, fileData);
+                    writeSpan.Finish();
+                    
                     result.Success = true;
+                    SentrySdk.AddBreadcrumb($"Applied {result.PatchCount} patches to {Path.GetFileName(clipPath)}", "file", level: Sentry.BreadcrumbLevel.Info);
                 }
                 else
                 {
                     result.Success = true; // No changes needed is still success
                 }
 
+                span.SetExtra("patch_count", result.PatchCount);
+                span.SetExtra("file_size_bytes", fileSize);
+                span.Finish(SpanStatus.Ok);
+                
                 return result;
             }
             catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex, scope =>
+                {
+                    scope.SetTag("operation", "process-single-clip");
+                    scope.SetExtra("file_path", clipPath);
+                    scope.SetExtra("file_name", Path.GetFileName(clipPath));
+                });
+                
                 result.Success = false;
                 result.ErrorMessage = ex.Message;
+                span.Finish(SpanStatus.InternalError);
                 return result;
             }
         }
