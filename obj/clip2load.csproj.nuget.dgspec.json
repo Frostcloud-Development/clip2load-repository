@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Avenzey\\Documents\\clip2load\\clip2load.csproj": {}
+    "C:\\Users\\Avenzey\\Documents\\Frostcloud\\clip2load-repository\\clip2load.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Avenzey\\Documents\\clip2load\\clip2load.csproj": {
+    "C:\\Users\\Avenzey\\Documents\\Frostcloud\\clip2load-repository\\clip2load.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Avenzey\\Documents\\clip2load\\clip2load.csproj",
+        "projectUniqueName": "C:\\Users\\Avenzey\\Documents\\Frostcloud\\clip2load-repository\\clip2load.csproj",
         "projectName": "clip2load",
-        "projectPath": "C:\\Users\\Avenzey\\Documents\\clip2load\\clip2load.csproj",
+        "projectPath": "C:\\Users\\Avenzey\\Documents\\Frostcloud\\clip2load-repository\\clip2load.csproj",
         "packagesPath": "C:\\Users\\Avenzey\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Avenzey\\Documents\\clip2load\\obj\\",
+        "outputPath": "C:\\Users\\Avenzey\\Documents\\Frostcloud\\clip2load-repository\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
