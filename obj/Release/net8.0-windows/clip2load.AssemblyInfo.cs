@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("clip2load")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0c08f98e96ab2008a0a098515763b34d0df643d4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+565f5a03a9c82876b02772c008de40b671f657db")]
 [assembly: System.Reflection.AssemblyProductAttribute("clip2load")]
 [assembly: System.Reflection.AssemblyTitleAttribute("clip2load")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
