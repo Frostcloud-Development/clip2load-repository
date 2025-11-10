@@ -1,7 +1,9 @@
-<img width="1470" height="980" alt="clip2load-banner" src="https://github.com/user-attachments/assets/fa6ef1c9-663e-483c-a581-68ff682be7c0" />
+![clip2load-banner](https://github.com/user-attachments/assets/97d2fc64-b038-4e0b-9875-8c580f4bd1a5)
+
+*This project is maintained as an open-source project by us at Frostcloud, and contributions are always welcome! https://thefrostcloud.com* <br>
+*We'd love to be part of your next project that requires hosting, check us out!*
 
 # clip2load
-
 clip2load allows you to process GTA V `.clip` files by identifying and patching specific resource names within the binary clip data. This is useful for removing references to mods, resources, or other identifiable content that you may not want included in your clips. Useful for preventing R* Editor crashes while attempting to load escrowed assets that are stored in the .clip files.
 
 ## Features
@@ -27,10 +29,12 @@ Download link for .NET: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 3. Extract the archive to your desired location
 4. Run `clip2load.exe`
 
-## Usage
+## Support
+For issues, questions, or feature requests, please visit the [GitHub Issues](https://github.com/Frostcloud-Development/clip2load-repository/issues) page.
+
+## Usage Guide
 
 ### Getting Started
-
 1. **Launch the application** - The default GTA V clips folder will be automatically detected:
    ```
    C:\Users\[YourUsername]\AppData\Local\Rockstar Games\GTA V\videos\clips
@@ -76,24 +80,6 @@ esx_*
 qb-*
 ```
 
-## Data Storage
-
-### Blocked Resources
-Blocked resource lists are stored in:
-```
-storage/blocked_resources.dat
-```
-
-The file is automatically created and updated when you add or remove resources.
-
-### Backups
-Each processing session creates a new backup folder with the format:
-```
-backups/YYYY-MM-DD_HH-MM-SS/
-```
-
-Original clip files are preserved with their original filenames in these folders.
-
 ## Configuration
 
 ### Changing the Clips Folder
@@ -119,14 +105,11 @@ If your GTA V clips are in a different location:
 - Verify you have write permissions to the clips folder
 - Check the log window for specific error messages
 
-## Contributing
+## Engineered with ❤️ by Frostcloud!
+We at Frostcloud believe in giving back to the community, therefore we release these tools for free, for you to use!
+If you would like to support us in continuing to give back, please consider using us for your next project that requires hosting!
+We provide all various services, and would love to be part of your next project!
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
+Consider visiting our website, https://thefrostcloud.com, and thank you for using clip2load!
 
-## Support
-
-For issues, questions, or feature requests, please visit the [GitHub Issues](https://github.com/Frostcloud-Development/clip2load-repository/issues) page.
-
-## Disclaimer
-
-This tool modifies GTA V clip files. While automatic backups are created, always ensure you have copies of important clips before processing. Use at your own risk.
+[<img width="256" height="256" alt="logo_variation_five" src="https://github.com/user-attachments/assets/b1ac9a9d-40e4-44b5-902e-fe5322b2cba0" />](https://thefrostcloud.com/)
