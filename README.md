@@ -1,7 +1,7 @@
 ![clip2load-banner](https://github.com/user-attachments/assets/97d2fc64-b038-4e0b-9875-8c580f4bd1a5)
 
-*This project is maintained as an open-source project by us at Frostcloud, and contributions are always welcome! https://thefrostcloud.com* <br>
-*We'd love to be part of your next project that requires hosting, check us out!*
+*This project is maintained as an open-source project by us at Frostcloud, and contributions are always welcome!* <br>
+*We'd love to be part of your next project that requires hosting, check us out!* https://thefrostcloud.com
 
 # clip2load
 clip2load allows you to process GTA V `.clip` files by identifying and patching specific resource names within the binary clip data. This is useful for removing references to mods, resources, or other identifiable content that you may not want included in your clips. Useful for preventing R* Editor crashes while attempting to load escrowed assets that are stored in the .clip files.
