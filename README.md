@@ -14,15 +14,18 @@ clip2load allows you to process GTA V `.clip` files by identifying and patching 
 
 ## System Requirements
 
-- **OS**: Windows (with .NET 8.0 Windows Runtime)
-- **Target Framework**: .NET 8.0-windows
-- **GTA V**: Installed with valid clips folder
+- **Operating System**: Windows 10/11
+- **.NET Desktop Runtime**: Install at least 8.0.21, preferably newer if available.
+- **GTAV**: Installed with valid clips folder
+
+Download link for .NET: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 
 ## Installation
 
-1. Download the latest release from the releases page
-2. Extract the archive to your desired location
-3. Run `clip2load.exe`
+1. Install the .NET Desktop Runtime 8.0.21 (or newer if available) 
+2. Download the latest release from the releases page
+3. Extract the archive to your desired location
+4. Run `clip2load.exe`
 
 ## Usage
 
