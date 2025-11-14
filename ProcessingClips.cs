@@ -249,8 +249,11 @@ namespace clip2load
         /// Process multiple clip files with the specified resource patterns
         /// </summary>
         public async Task<ProcessingResult> ProcessClipsAsync(List<string> clipFilePaths, List<string> blockedResources,
-            PatchMode mode = PatchMode.Null, string placeholder = "REMOVED", bool caseInsensitive = false)
+            ProcessingOptions options = null)
         {
+            // Use default options if not provided
+            options ??= new ProcessingOptions();
+
             var transaction = SentrySdk.GetSpan() ?? SentrySdk.StartTransaction("process-clips", "process");
             var result = new ProcessingResult();
 
@@ -261,8 +264,8 @@ namespace clip2load
                 
                 transaction.SetExtra("total_clips", clipFilePaths.Count);
                 transaction.SetExtra("blocked_resources", blockedResources.Count);
-                transaction.SetExtra("patch_mode", mode.ToString());
-                transaction.SetExtra("case_insensitive", caseInsensitive);
+                transaction.SetExtra("patch_mode", options.Mode.ToString());
+                transaction.SetExtra("case_insensitive", options.CaseInsensitive);
 
                 if (!clipFilePaths.Any())
                 {
@@ -309,7 +312,7 @@ namespace clip2load
                 {
                     OnProgress?.Invoke($"Processing: {Path.GetFileName(clipPath)}");
 
-                    var fileResult = await ProcessSingleClipAsync(clipPath, blockedResources, mode, placeholder, caseInsensitive);
+                    var fileResult = await ProcessSingleClipAsync(clipPath, blockedResources, options);
 
                     result.ProcessedFiles++;
                     result.TotalPatches += fileResult.PatchCount;
@@ -364,7 +367,7 @@ namespace clip2load
         /// Process a single clip file
         /// </summary>
         private async Task<FileProcessingResult> ProcessSingleClipAsync(string clipPath, List<string> blockedResources,
-            PatchMode mode, string placeholder, bool caseInsensitive)
+            ProcessingOptions options)
         {
             var span = SentrySdk.GetSpan()?.StartChild("process-single-clip") ?? 
                        SentrySdk.StartTransaction("process-single-clip", "file.process");
@@ -415,11 +418,12 @@ namespace clip2load
                 var patchSpan = span.StartChild("find-and-patch");
                 foreach (var resource in blockedResources)
                 {
-                    var matches = FindPatternMatches(fileData, resource, caseInsensitive);
+                    var matches = FindPatternMatches(fileData, resource, options.CaseInsensitive);
 
                     foreach (var match in matches)
                     {
-                        ApplyPatch(fileData, match.StartIndex, match.Length, mode, placeholder);
+                        var patchOptions = new PatchOptions { Mode = options.Mode, Placeholder = options.Placeholder };
+                        ApplyPatch(fileData, match.StartIndex, match.Length, patchOptions);
                         result.PatchCount++;
                         hasChanges = true;
 
@@ -628,17 +632,17 @@ namespace clip2load
         /// <summary>
         /// Apply patch to binary data
         /// </summary>
-        private void ApplyPatch(byte[] data, int startIndex, int length, PatchMode mode, string placeholder)
+        private void ApplyPatch(byte[] data, int startIndex, int length, PatchOptions options)
         {
             byte[] replacement;
 
-            switch (mode)
+            switch (options.Mode)
             {
                 case PatchMode.Null:
                     replacement = new byte[length]; // All zeros
                     break;
                 case PatchMode.Placeholder:
-                    var placeholderBytes = Encoding.ASCII.GetBytes(placeholder);
+                    var placeholderBytes = Encoding.ASCII.GetBytes(options.Placeholder);
                     replacement = new byte[length];
 
                     // Repeat placeholder to fill the length
@@ -648,7 +652,7 @@ namespace clip2load
                     }
                     break;
                 default:
-                    throw new ArgumentException($"Unknown patch mode: {mode}");
+                    throw new ArgumentException($"Unknown patch mode: {options.Mode}");
             }
 
             // Apply the replacement
@@ -683,6 +687,21 @@ namespace clip2load
                 .OrderByDescending(name => name) // Most recent first
                 .ToList();
         }
+    }
+
+    // Processing options parameter object
+    public class ProcessingOptions
+    {
+        public PatchMode Mode { get; set; } = PatchMode.Null;
+        public string Placeholder { get; set; } = "REMOVED";
+        public bool CaseInsensitive { get; set; } = false;
+    }
+
+    // Patch options parameter object
+    public class PatchOptions
+    {
+        public PatchMode Mode { get; set; }
+        public string Placeholder { get; set; }
     }
 
     // Storage data structure
