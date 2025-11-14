@@ -591,28 +591,47 @@ namespace clip2load
 
             for (int i = 0; i < data.Length; i++)
             {
-                if (data[i] >= 32 && data[i] <= 126) // Printable ASCII range
+                if (IsPrintableAscii(data[i]))
                 {
-                    if (currentString.Length == 0)
-                        startIndex = i;
-
-                    currentString.Append((char)data[i]);
+                    startIndex = ProcessPrintableCharacter(currentString, data[i], i, startIndex);
                 }
                 else
                 {
-                    if (currentString.Length > 0)
-                    {
-                        strings.Add(new AsciiString
-                        {
-                            StartIndex = startIndex,
-                            Text = currentString.ToString()
-                        });
-                        currentString.Clear();
-                    }
+                    FinalizeCurrentString(strings, currentString, startIndex);
                 }
             }
 
             // Handle string at end of file
+            FinalizeCurrentString(strings, currentString, startIndex);
+
+            return strings;
+        }
+
+        /// <summary>
+        /// Check if a byte represents a printable ASCII character
+        /// </summary>
+        private bool IsPrintableAscii(byte value)
+        {
+            return value >= 32 && value <= 126;
+        }
+
+        /// <summary>
+        /// Process a printable ASCII character and track string position
+        /// </summary>
+        private int ProcessPrintableCharacter(StringBuilder currentString, byte character, int currentIndex, int startIndex)
+        {
+            if (currentString.Length == 0)
+                startIndex = currentIndex;
+
+            currentString.Append((char)character);
+            return startIndex;
+        }
+
+        /// <summary>
+        /// Finalize the current string if it has content
+        /// </summary>
+        private void FinalizeCurrentString(List<AsciiString> strings, StringBuilder currentString, int startIndex)
+        {
             if (currentString.Length > 0)
             {
                 strings.Add(new AsciiString
@@ -620,9 +639,8 @@ namespace clip2load
                     StartIndex = startIndex,
                     Text = currentString.ToString()
                 });
+                currentString.Clear();
             }
-
-            return strings;
         }
 
         /// <summary>
