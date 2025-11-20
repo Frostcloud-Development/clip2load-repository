@@ -10,6 +10,7 @@ namespace clip2load
     public partial class clip2load : Form
     {
         private string clipsFolder = @"C:\Users\Avenzey\AppData\Local\Rockstar Games\GTA V\videos\clips";
+		private string appVersion = Properties.Resources.Version;
         private ProcessingClips clipProcessor;
 
         public clip2load()
@@ -105,24 +106,23 @@ namespace clip2load
         {
             var transaction = SentrySdk.StartTransaction("app-load", "ui.load");
             SentrySdk.ConfigureScope(scope => scope.Transaction = transaction);
-            
+
             try
             {
                 // Log application startup
-                LogMessage("Application started - clip2load v1.0.0");
+                LogMessage($"Application started - clip2load | {appVersion}");
 
-                // Log clips folder status
+				// Application startup tasks
                 LogClipsFolderStatus();
-
                 UpdateClipsPathLabel();
-                
                 LoadClipFiles();
-                
                 UpdateResourceCountLabel();
-
                 await LoadSavedResources();
-
                 UpdateResourceCountLabel();
+
+				// Update versioning
+				Text = $"{appVersion} | github.com/Frostcloud-Development/clip2load";
+				groupBox2.Text = $"build {appVersion} | developed by: github.com/Avenze";
                 
                 transaction.Finish(SpanStatus.Ok);
             }
