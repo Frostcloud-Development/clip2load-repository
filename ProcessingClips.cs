@@ -60,7 +60,6 @@ namespace clip2load
             try
             {
                 OnProgress?.Invoke($"Saving {blockedResources.Count} blocked resources to storage...");
-                SentrySdk.AddBreadcrumb($"Saving {blockedResources.Count} resources", "data", level: Sentry.BreadcrumbLevel.Info);
 
                 // Create storage data structure
                 var storageData = new ResourceStorageData
@@ -116,7 +115,6 @@ namespace clip2load
                 if (!File.Exists(resourcesFilePath))
                 {
                     OnProgress?.Invoke("No saved blocked resources found - starting with empty list");
-                    SentrySdk.AddBreadcrumb("No saved resources file found", "data", level: Sentry.BreadcrumbLevel.Info);
                     span.Finish(SpanStatus.NotFound);
                     return new List<string>();
                 }
@@ -135,7 +133,6 @@ namespace clip2load
                 if (storageData?.BlockedResources != null)
                 {
                     OnProgress?.Invoke($"Loaded {storageData.BlockedResources.Count} blocked resources from {storageData.SavedDate:yyyy-MM-dd HH:mm:ss}");
-                    SentrySdk.AddBreadcrumb($"Loaded {storageData.BlockedResources.Count} resources", "data", level: Sentry.BreadcrumbLevel.Info);
                     
                     span.SetExtra("resource_count", storageData.BlockedResources.Count);
                     span.SetExtra("saved_date", storageData.SavedDate);
@@ -146,7 +143,6 @@ namespace clip2load
                 else
                 {
                     OnProgress?.Invoke("Storage file exists but contains no valid data");
-                    SentrySdk.AddBreadcrumb("Invalid storage data", "data", level: Sentry.BreadcrumbLevel.Warning);
                     span.Finish(SpanStatus.DataLoss);
                     return new List<string>();
                 }
@@ -256,7 +252,6 @@ namespace clip2load
 
             try
             {
-                SentrySdk.AddBreadcrumb("Starting clip processing", "process", level: Sentry.BreadcrumbLevel.Info);
                 OnProgress?.Invoke("Starting clip processing...");
                 
                 transaction.SetExtra("total_clips", clipFilePaths.Count);
@@ -266,7 +261,6 @@ namespace clip2load
 
                 if (!clipFilePaths.Any())
                 {
-                    SentrySdk.AddBreadcrumb("No clip files selected", "process", level: Sentry.BreadcrumbLevel.Warning);
                     OnError?.Invoke("No clip files selected for processing");
                     transaction.Finish(SpanStatus.InvalidArgument);
                     return result;
@@ -274,7 +268,6 @@ namespace clip2load
 
                 if (!blockedResources.Any())
                 {
-                    SentrySdk.AddBreadcrumb("No blocked resources specified", "process", level: Sentry.BreadcrumbLevel.Warning);
                     OnError?.Invoke("No blocked resources specified");
                     transaction.Finish(SpanStatus.InvalidArgument);
                     return result;
@@ -335,7 +328,6 @@ namespace clip2load
                 transaction.SetExtra("files_patched", result.PatchedFiles);
                 transaction.SetExtra("total_patches", result.TotalPatches);
 
-                SentrySdk.AddBreadcrumb($"Processing complete: {result.TotalPatches} patches applied", "process", level: Sentry.BreadcrumbLevel.Info);
                 OnComplete?.Invoke($"Processing complete! Processed {result.ProcessedFiles} files, " +
                     $"patched {result.PatchedFiles} files with {result.TotalPatches} total patches.");
 
@@ -382,7 +374,6 @@ namespace clip2load
                 if (!File.Exists(clipPath))
                 {
                     result.ErrorMessage = "File not found";
-                    SentrySdk.AddBreadcrumb($"File not found: {clipPath}", "file", level: Sentry.BreadcrumbLevel.Warning);
                     span.Finish(SpanStatus.NotFound);
                     return result;
                 }
@@ -443,7 +434,6 @@ namespace clip2load
                     writeSpan.Finish();
                     
                     result.Success = true;
-                    SentrySdk.AddBreadcrumb($"Applied {result.PatchCount} patches to {Path.GetFileName(clipPath)}", "file", level: Sentry.BreadcrumbLevel.Info);
                 }
                 else
                 {
@@ -461,8 +451,6 @@ namespace clip2load
                 SentrySdk.CaptureException(ex, scope =>
                 {
                     scope.SetTag("operation", "process-single-clip");
-                    scope.SetExtra("file_path", clipPath);
-                    scope.SetExtra("file_name", Path.GetFileName(clipPath));
                 });
                 
                 result.Success = false;
