@@ -12,43 +12,21 @@ namespace clip2load
             SentrySdk.Init(o =>
             {
                 o.Dsn = "https://566cd2389f8b8dbaebea75cf6ef12b25@o1113761.ingest.us.sentry.io/4510319876505600";
-                
-                // Performance monitoring
+				o.Debug = true;
                 o.TracesSampleRate = 1.0;
-                
-                // Session tracking
                 o.IsGlobalModeEnabled = true;
+				o.Release = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+                o.Environment = "production";
                 o.AutoSessionTracking = true;
                 
-                // Version tracking
-                o.Release = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-                
-                // Environment configuration
-                #if DEBUG
-                o.Environment = "development";
-                o.Debug = true;
-                o.DiagnosticLevel = Sentry.SentryLevel.Debug;
-                #else
-                o.Environment = "production";
-                o.Debug = false;
-                #endif
-                
-                // Breadcrumbs configuration
-                o.MaxBreadcrumbs = 100;
-                
-                // Event filtering and enrichment
                 o.SetBeforeSend((sentryEvent, hint) =>
                 {
                     // Add custom context to all events
                     sentryEvent.SetTag("os", Environment.OSVersion.ToString());
-                    sentryEvent.SetTag("machine-name", Environment.MachineName);
                     return sentryEvent;
                 });
                 
-                // Attach stack traces to all messages
                 o.AttachStacktrace = true;
-                
-                // Send default PII (Personally Identifiable Information)
                 o.SendDefaultPii = false;
             });
 
