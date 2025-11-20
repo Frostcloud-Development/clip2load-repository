@@ -1,3 +1,6 @@
+using System.Reflection;
+using Sentry;
+
 namespace clip2load
 {
     internal static class Program
@@ -15,7 +18,7 @@ namespace clip2load
 				o.Debug = true;
                 o.TracesSampleRate = 1.0;
                 o.IsGlobalModeEnabled = true;
-				o.Release = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+				o.Release = Properties.Resources.Version;
                 o.Environment = "production";
                 o.AutoSessionTracking = true;
                 
