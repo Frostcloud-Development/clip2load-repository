@@ -75,7 +75,6 @@ namespace clip2load
         {
             try
             {
-                SentrySdk.AddBreadcrumb("Loading saved resources", "data", level: Sentry.BreadcrumbLevel.Info);
                 
                 var savedResources = await clipProcessor.LoadBlockedResourcesAsync();
 
@@ -89,7 +88,6 @@ namespace clip2load
 
                 if (savedResources.Any())
                 {
-                    SentrySdk.AddBreadcrumb($"Loaded {savedResources.Count} saved resources", "data", level: Sentry.BreadcrumbLevel.Info);
                     LogMessage($"Loaded {savedResources.Count} saved blocked resources");
                 }
             }
@@ -111,26 +109,18 @@ namespace clip2load
             try
             {
                 // Log application startup
-                SentrySdk.AddBreadcrumb("Application started", "app.lifecycle", level: Sentry.BreadcrumbLevel.Info);
                 LogMessage("Application started - clip2load v1.0.0");
 
                 // Log clips folder status
-                var folderSpan = transaction.StartChild("check-clips-folder");
                 LogClipsFolderStatus();
-                folderSpan.Finish();
 
                 UpdateClipsPathLabel();
                 
-                var loadSpan = transaction.StartChild("load-clip-files");
                 LoadClipFiles();
-                loadSpan.Finish();
                 
                 UpdateResourceCountLabel();
 
-                // Load saved resources
-                var resourcesSpan = transaction.StartChild("load-saved-resources");
                 await LoadSavedResources();
-                resourcesSpan.Finish();
 
                 UpdateResourceCountLabel();
                 
@@ -201,7 +191,6 @@ namespace clip2load
                 lblAllClips.Text = $"All Clips ({clipFiles.Length}):";
 
                 // Log the loaded clips
-                SentrySdk.AddBreadcrumb($"Loaded {clipFiles.Length} clip files", "file", level: Sentry.BreadcrumbLevel.Info);
                 LogMessage($"Loaded {clipFiles.Length} clip files");
                 
                 span.SetExtra("clip_count", clipFiles.Length);
@@ -235,7 +224,6 @@ namespace clip2load
 
             if (!selectedClips.Any())
             {
-                SentrySdk.AddBreadcrumb("No clips selected for processing", "user", level: Sentry.BreadcrumbLevel.Warning);
                 MessageBox.Show("Please select clips to process.", "No Clips Selected",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 transaction.Finish(SpanStatus.InvalidArgument);
@@ -244,7 +232,6 @@ namespace clip2load
 
             if (!blockedResources.Any())
             {
-                SentrySdk.AddBreadcrumb("No blocked resources specified", "user", level: Sentry.BreadcrumbLevel.Warning);
                 MessageBox.Show("Please add blocked resources to process.", "No Resources Specified",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 transaction.Finish(SpanStatus.InvalidArgument);
@@ -257,7 +244,6 @@ namespace clip2load
 
             try
             {
-                SentrySdk.AddBreadcrumb("Starting clip conversion process", "process", level: Sentry.BreadcrumbLevel.Info);
                 LogMessage("Starting clip conversion process...");
 
                 var processingSpan = transaction.StartChild("process-clips-async");
@@ -272,7 +258,6 @@ namespace clip2load
 
                 if (result.Success)
                 {
-                    SentrySdk.AddBreadcrumb("Processing completed successfully", "process", level: Sentry.BreadcrumbLevel.Info);
                     transaction.SetExtra("files_processed", result.ProcessedFiles);
                     transaction.SetExtra("files_patched", result.PatchedFiles);
                     transaction.SetExtra("total_patches", result.TotalPatches);
@@ -331,8 +316,6 @@ namespace clip2load
                 {
                     string oldFolder = clipsFolder;
                     clipsFolder = folderDialog.SelectedPath;
-
-                    SentrySdk.AddBreadcrumb($"Clips folder changed to: {clipsFolder}", "user", level: Sentry.BreadcrumbLevel.Info);
                     
                     LogMessage($"Clips folder changed from: {oldFolder}");
                     LogMessage($"Clips folder changed to: {clipsFolder}");
@@ -427,7 +410,6 @@ namespace clip2load
             // Validate input
             if (string.IsNullOrWhiteSpace(resourceName))
             {
-                SentrySdk.AddBreadcrumb("Empty resource name entered", "user", level: Sentry.BreadcrumbLevel.Warning);
                 MessageBox.Show("Please enter a resource name.", "Invalid Input",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 ResourceName.Focus();
@@ -438,7 +420,6 @@ namespace clip2load
             if (ResourceNameListbox.Items.Cast<string>().Any(item =>
                 string.Equals(item, resourceName, StringComparison.OrdinalIgnoreCase)))
             {
-                SentrySdk.AddBreadcrumb($"Duplicate resource attempted: {resourceName}", "user", level: Sentry.BreadcrumbLevel.Info);
                 MessageBox.Show($"Resource '{resourceName}' already exists in the list.", "Duplicate Resource",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ResourceName.Focus();
@@ -457,7 +438,6 @@ namespace clip2load
                 UpdateResourceCountLabel();
 
                 // Log the addition
-                SentrySdk.AddBreadcrumb($"Resource added: {resourceName}", "user", level: Sentry.BreadcrumbLevel.Info);
                 LogMessage($"Added resource: {resourceName}");
 
                 // Auto-save resources
