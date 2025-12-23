@@ -247,12 +247,16 @@ namespace clip2load
                 LogMessage("Starting clip conversion process...");
 
                 var processingSpan = transaction.StartChild("process-clips-async");
+                var options = new ProcessingClips.ProcessingOptions
+                {
+                    Mode = ProcessingClips.PatchMode.Null, // You can add UI controls to select this
+                    Placeholder = "REMOVED",
+                    CaseInsensitive = false // Case sensitive by default
+                };
                 var result = await clipProcessor.ProcessClipsAsync(
                     selectedClips,
                     blockedResources,
-                    ProcessingClips.PatchMode.Null, // You can add UI controls to select this
-                    "REMOVED",
-                    false // Case sensitive by default
+                    options
                 );
                 processingSpan.Finish();
 
